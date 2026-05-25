@@ -3,6 +3,7 @@ import { logout } from "./api/userApi.js";
 import { renderProfile } from "./render/renderProfile.js";
 import { renderHome } from "./render/renderHome.js";
 import { renderProjects } from "./render/project/renderProjects.js";
+import { renderTasks } from "./render/task/renderTasks.js";
 
 document.addEventListener("DOMContentLoaded", () => {
 
@@ -52,6 +53,15 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+
+  // ACTIVE LINK TASKS
+  const navTasks = document.getElementById("navTasks");
+  if (navTasks) {
+    navTasks.addEventListener("click", (e) => {
+      e.preventDefault();
+      renderTasks(user);
+    });
+  }
 
 
   // PROFILE

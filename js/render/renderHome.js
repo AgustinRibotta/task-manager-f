@@ -17,7 +17,7 @@ export function renderHome(user) {
       <div class="card mb-4">
         <div class="card-body">
           <h5>🔐 Roles</h5>
-          ${user.roles.map(r => `<span class="badge bg-primary me-1">${r}</span>`).join("")}
+          ${user.roles.map(r => `<span class="badge text-primary-emphasis bg-primary-subtle border border-primary-subtle me-1">${r}</span>`).join("")}
         </div>
       </div>
 

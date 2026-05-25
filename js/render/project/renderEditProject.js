@@ -29,11 +29,11 @@ export async function renderEditProject(id) {
 
         <div class="modal-footer">
 
-          <button class="btn btn-secondary" data-bs-dismiss="modal">
+          <button class="btn btn-outline-danger" data-bs-dismiss="modal">
             Cancel
           </button>
 
-          <button class="btn btn-primary" id="saveProject">
+          <button class="btn btn-outline-primary" id="saveProject">
             Save
           </button>
 

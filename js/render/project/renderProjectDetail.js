@@ -1,17 +1,16 @@
 import { getProjectById } from "../../api/projectApi.js";
 import { renderEditProject } from "./renderEditProject.js";
-import { deleteProject } from "../../api/projectApi.js";
 import { renderDeleteProject } from "./renderDeleteProject.js";
 import { decodeJWT } from "../../api/configApi.js";
 
 export async function renderProjectDetail(id) {
 
   const content = document.getElementById("appContent");
-  
-  const token = localStorage.getItem("jwtToken");
-  const user = decodeJWT(token);  
-  const isAdmin = user.roles.includes("ADMIN")
 
+  const token = localStorage.getItem("jwtToken");
+  const user = decodeJWT(token);
+
+  const isAdmin = user.roles.includes("ADMIN");
 
   const project = await getProjectById(id);
 
@@ -29,16 +28,34 @@ export async function renderProjectDetail(id) {
           </div>
 
           <!-- ACTIONS -->
-          <div class="d-flex gap-2">
+          <div class="d-flex flex-wrap gap-2 justify-content-end align-items-center">
+
             ${isAdmin ? `
-              <button class="btn btn-warning btn-sm" id="editProject">
-                Edit
+              
+              <button class="btn btn-outline-primary btn-sm d-flex align-items-center gap-1"
+                      id="assignTaskBtn">
+                <span>➕</span> Assign Task
               </button>
 
-              <button class="btn btn-danger btn-sm" id="deleteProject">
-                Delete
+              <button class="btn btn-outline-success btn-sm d-flex align-items-center gap-1"
+                      id="assignUserBtn">
+                <span>👤</span> Assign User
               </button>
+
+              <div class="vr"></div>
+
+              <button class="btn btn-outline-warning btn-sm d-flex align-items-center gap-1"
+                      id="editProject">
+                <span>✏️</span> Edit
+              </button>
+
+              <button class="btn btn-outline-danger btn-sm d-flex align-items-center gap-1"
+                      id="deleteProject">
+                <span>🗑️</span> Delete
+              </button>
+
             ` : ""}
+
           </div>
 
         </div>
@@ -50,7 +67,9 @@ export async function renderProjectDetail(id) {
         <div class="col-md-8">
           <div class="card p-3 shadow-sm">
 
-            <h5>📝 Tasks (${project.tasksDto.length})</h5>
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <h5 class="mb-0">📝 Tasks (${project.tasksDto.length})</h5>
+            </div>
 
             ${project.tasksDto.map(task => `
               <div class="border rounded p-2 mb-2 task-card"
@@ -58,12 +77,15 @@ export async function renderProjectDetail(id) {
                    data-id="${task.id}">
 
                 <strong>${task.name}</strong>
+
                 <p class="mb-1">${task.description}</p>
 
                 <span class="badge 
-                  ${task.status === "DONE" ? "bg-success" :
-                    task.status === "IN_PROGRESS" ? "bg-warning" :
-                    "bg-secondary"}">
+                  ${task.status === "DONE"
+                    ? "bg-success"
+                    : task.status === "IN_PROGRESS"
+                    ? "bg-warning"
+                    : "bg-secondary"}">
 
                   ${task.status}
 
@@ -79,7 +101,9 @@ export async function renderProjectDetail(id) {
         <div class="col-md-4">
           <div class="card p-3 shadow-sm">
 
-            <h5>👥 Users (${project.usersDto.length})</h5>
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <h5 class="mb-0">👥 Users (${project.usersDto.length})</h5>
+            </div>
 
             ${project.usersDto.map(user => `
               <div class="border rounded p-2 mb-2 user-card"
@@ -87,8 +111,14 @@ export async function renderProjectDetail(id) {
                    data-id="${user.id}">
 
                 <strong>${user.username}</strong>
-                <p class="mb-0 text-muted">${user.roleDto.map(role => role.name).join(", ")}</p>
-                <p class="mb-0 text-muted">${user.email}</p>
+
+                <p class="mb-0 text-muted">
+                  ${user.roleDto.map(role => role.name).join(", ")}
+                </p>
+
+                <p class="mb-0 text-muted">
+                  ${user.email}
+                </p>
 
               </div>
             `).join("")}
@@ -100,31 +130,51 @@ export async function renderProjectDetail(id) {
     </div>
   `;
 
-  // TASK CLICK
+  // TASK DETAIL
   document.querySelectorAll(".task-card").forEach(task => {
     task.addEventListener("click", () => {
       const taskId = task.dataset.id;
       console.log("Open task:", taskId);
+
       // renderTaskDetail(taskId)
     });
   });
 
-  // USER CLICK
-  document.querySelectorAll(".user-card").forEach(user => {
-    user.addEventListener("click", () => {
-      const userId = user.dataset.id;
+  // USER DETAIL
+  document.querySelectorAll(".user-card").forEach(userCard => {
+    userCard.addEventListener("click", () => {
+      const userId = userCard.dataset.id;
       console.log("Open user:", userId);
+
       // renderUserProfile(userId)
     });
   });
 
-  // PROJECT ACTIONS
-  document.getElementById("editProject").addEventListener("click", () => {
-    renderEditProject(id)
-  });
+  // EDIT PROJECT
+  if (isAdmin) {
 
-  document.getElementById("deleteProject").addEventListener("click", () => {
-    renderDeleteProject(id)
-  });
+    document.getElementById("editProject")
+      .addEventListener("click", () => {
+        renderEditProject(id);
+      });
+
+    document.getElementById("deleteProject")
+      .addEventListener("click", () => {
+        renderDeleteProject(id);
+      });
+
+    // ASSIGN TASK
+    document.getElementById("assignTaskBtn")
+      .addEventListener("click", () => {
+        renderAssignTask(id);
+      });
+
+    // ASSIGN USER
+    document.getElementById("assignUserBtn")
+      .addEventListener("click", () => {
+        renderAssignUser(id);
+      });
+
+  }
 
 }

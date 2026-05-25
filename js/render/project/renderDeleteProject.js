@@ -20,11 +20,11 @@ export function renderDeleteProject(id) {
           </div>
 
           <div class="modal-footer">
-            <button class="btn btn-secondary" data-bs-dismiss="modal">
+            <button class="btn btn-outline-primary" data-bs-dismiss="modal">
               Cancel
             </button>
 
-            <button class="btn btn-danger" id="confirmDeleteBtn">
+            <button class="btn btn-outline-danger" id="confirmDeleteBtn">
               Delete
             </button>
           </div>

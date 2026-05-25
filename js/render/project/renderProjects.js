@@ -1,5 +1,6 @@
 import { getAllProjects, getProjectById, getProjectByUserId } from "../../api/projectApi.js";
 import { renderProjectDetail } from "./renderProjectDetail.js";
+import { renderCreateProject } from "./renderCreateProject.js";
 
 export async function renderProjects(user) {
 
@@ -20,7 +21,7 @@ export async function renderProjects(user) {
         <h2 class="mb-0">📁 Projects</h2>
 
         ${isAdmin ? `
-          <button class="btn btn-primary" id="createProjectBtn">
+          <button class="btn btn-outline-primary" id="createProjectBtn">
             + Create Project
           </button>
         ` : ""}
@@ -35,11 +36,11 @@ export async function renderProjects(user) {
           <p>${project.description || ""}</p>
 
           <div class="d-flex gap-2">
-            <span class="badge bg-primary">
+            <span class="badge  text-primary-emphasis bg-primary-subtle border border-primary-subtle">
               Tasks: ${project.tasksDto?.length ?? 0}
             </span>
 
-            <span class="badge bg-success">
+            <span class="badge  text-success-emphasis bg-success-subtle border border-success-subtle">
               Users: ${project.usersDto?.length ?? 0}
             </span>
           </div>
@@ -60,6 +61,6 @@ export async function renderProjects(user) {
 
   // CREATE PROJECT
   document.getElementById("createProjectBtn").addEventListener("click", () => {
-  // renderCreateProject();
+  renderCreateProject();
 });
 }
