@@ -1,4 +1,8 @@
-import { getAllProjects, getProjectById, getProjectByUserId } from "../../api/projectApi.js";
+import {
+  getAllProjects,
+  getProjectByUserId
+} from "../../api/projectApi.js";
+
 import { renderProjectDetail } from "./renderProjectDetail.js";
 import { renderCreateProject } from "./renderCreateProject.js";
 
@@ -6,52 +10,75 @@ export async function renderProjects(user) {
 
   const content = document.getElementById("appContent");
 
-  const isAdmin = user.roles.includes("ADMIN")
+  const isGlobalAdmin = user.roles.includes("ADMIN");
 
-  const projects = isAdmin
+  const projects = isGlobalAdmin
     ? await getAllProjects()
     : await getProjectByUserId(user.id);
 
+  // 👇 usuario con rol ADMIN dentro del proyecto
+  const isAdminInProject = (project, user) =>
+    project.users?.some(u =>
+      u.id === user.id && u.roles?.some(r => r.name === "ADMIN")
+    );
+
   content.innerHTML = `
-    <div class="card p-4 shadow-sm">
+    <div class="p-4">
 
       <!-- HEADER -->
       <div class="d-flex justify-content-between align-items-center mb-3">
-
         <h2 class="mb-0">📁 Projects</h2>
 
-        ${isAdmin ? `
+        ${isGlobalAdmin ? `
           <button class="btn btn-outline-primary" id="createProjectBtn">
             + Create Project
           </button>
         ` : ""}
       </div>
 
-      ${projects.map(project => `
-        <div class="border rounded p-3 mb-3 project-card"
-            style="cursor:pointer"
-            data-id="${project.id}">
+      <!-- GRID -->
+      <div class="d-flex flex-wrap gap-3">
 
-          <h5>${project.name}</h5>
-          <p>${project.description || ""}</p>
+        ${projects.map(project => `
 
-          <div class="d-flex gap-2">
-            <span class="badge  text-primary-emphasis bg-primary-subtle border border-primary-subtle">
-              Tasks: ${project.tasksDto?.length ?? 0}
-            </span>
+          <div class="border rounded p-3 shadow-sm position-relative project-card"
+               style="width: 320px; cursor: pointer;"
+               data-id="${project.id}">
 
-            <span class="badge  text-success-emphasis bg-success-subtle border border-success-subtle">
-              Users: ${project.usersDto?.length ?? 0}
-            </span>
+            <!-- 👑 ADMIN EN PROYECTO -->
+            ${isAdminInProject(project, user) ? `
+              <span class="badge bg-warning text-dark position-absolute top-0 end-0 m-2">
+                Assigned
+              </span>
+            ` : ""}
+
+            <h5 class="mb-2">${project.name}</h5>
+
+            <p class="text-muted small">
+              ${project.description || ""}
+            </p>
+
+            <div class="d-flex gap-2 flex-wrap">
+
+              <span class="badge text-primary-emphasis bg-primary-subtle border border-primary-subtle">
+                Tasks: ${project.tasks?.length ?? 0}
+              </span>
+
+              <span class="badge text-success-emphasis bg-success-subtle border border-success-subtle">
+                Users: ${project.users?.length ?? 0}
+              </span>
+
+            </div>
+
           </div>
 
-        </div>
-      `).join("")}
+        `).join("")}
 
+      </div>
     </div>
   `;
 
-  // CLICK HANDLER
+  // CLICK
   document.querySelectorAll(".project-card").forEach(card => {
     card.addEventListener("click", () => {
       const id = card.getAttribute("data-id");
@@ -59,8 +86,11 @@ export async function renderProjects(user) {
     });
   });
 
-  // CREATE PROJECT
-  document.getElementById("createProjectBtn").addEventListener("click", () => {
-  renderCreateProject();
-});
+  // CREATE
+  const createBtn = document.getElementById("createProjectBtn");
+  if (createBtn) {
+    createBtn.addEventListener("click", () => {
+      renderCreateProject();
+    });
+  }
 }

@@ -68,10 +68,10 @@ export async function renderProjectDetail(id) {
           <div class="card p-3 shadow-sm">
 
             <div class="d-flex justify-content-between align-items-center mb-3">
-              <h5 class="mb-0">📝 Tasks (${project.tasksDto.length})</h5>
+              <h5 class="mb-0">📝 Tasks (${project.tasks.length})</h5>
             </div>
 
-            ${project.tasksDto.map(task => `
+            ${project.tasks.map(task => `
               <div class="border rounded p-2 mb-2 task-card"
                    style="cursor:pointer"
                    data-id="${task.id}">
@@ -102,22 +102,22 @@ export async function renderProjectDetail(id) {
           <div class="card p-3 shadow-sm">
 
             <div class="d-flex justify-content-between align-items-center mb-3">
-              <h5 class="mb-0">👥 Users (${project.usersDto.length})</h5>
+              <h5 class="mb-0">👥 Users (${project.users.length})</h5>
             </div>
 
-            ${project.usersDto.map(user => `
+            ${project.users.map(users => `
               <div class="border rounded p-2 mb-2 user-card"
                    style="cursor:pointer"
-                   data-id="${user.id}">
+                   data-id="${users.id}">
 
-                <strong>${user.username}</strong>
+                <strong>${users.username}</strong>
 
                 <p class="mb-0 text-muted">
-                  ${user.roleDto.map(role => role.name).join(", ")}
+                  ${users.roles.map(role => role.name).join(", ")}
                 </p>
 
                 <p class="mb-0 text-muted">
-                  ${user.email}
+                  ${users.email}
                 </p>
 
               </div>

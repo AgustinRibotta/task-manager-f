@@ -26,7 +26,7 @@ export async function renderProfile(id) {
         <div class="mb-3">
         <h5>Roles</h5>
         <ul>
-            ${response.roleDto.map(role => `
+            ${response.roles.map(role => `
             <li>${role.name || role}</li>
             `).join("")}
         </ul>
@@ -38,8 +38,8 @@ export async function renderProfile(id) {
         <div class="mb-3">
         <h5>Projects</h5>
 
-        ${response.projectResponseDto.length > 0
-            ? response.projectResponseDto.map(project => `
+        ${response.projects.length > 0
+            ? response.projects.map(project => `
                 <div class=" rounded p-2 mb-2">
                 <strong>${project.name}</strong>
                 </div>
@@ -54,8 +54,8 @@ export async function renderProfile(id) {
         <div class="mb-3">
         <h5>Tasks</h5>
 
-        ${response.taskDto.length > 0
-            ? response.taskDto.map(task => `
+        ${response.tasks.length > 0
+            ? response.tasks.map(task => `
                 <div class=" rounded p-2 mb-2">
                 <p class="mb-0">${task.title || task.name || "Task"}</p>
                 </div>
