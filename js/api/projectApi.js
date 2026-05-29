@@ -3,7 +3,7 @@ import { API_URL } from './configApi.js';
 // Get all projects
 export async function getAllProjects() {
   const token = localStorage.getItem('jwtToken');
-  const response = await fetch(`${API_URL}/projects/all`, {
+  const response = await fetch(`${API_URL}/projects`, {
     headers: {
       'Authorization': `Bearer ${token}`
     }
@@ -18,7 +18,7 @@ export async function getAllProjects() {
 // Get project by ID
 export async function getProjectById(projectId) {
   const token = localStorage.getItem('jwtToken');
-  const response = await fetch(`${API_URL}/projects/project/${projectId}`, {
+  const response = await fetch(`${API_URL}/projects/${projectId}`, {
     headers: {
       'Authorization': `Bearer ${token}`
     }
@@ -33,7 +33,7 @@ export async function getProjectById(projectId) {
 // Get projects by user ID
 export async function getProjectByUserId(userId) {
   const token = localStorage.getItem('jwtToken');
-  const response = await fetch(`${API_URL}/projects/userId/${userId}`, {
+  const response = await fetch(`${API_URL}/projects/user/${userId}/projects`, {
     headers: {
       'Authorization': `Bearer ${token}`
     }
@@ -48,7 +48,7 @@ export async function getProjectByUserId(userId) {
 // Create new project
 export async function createProject(projectData) {
   const token = localStorage.getItem('jwtToken');
-  const response = await fetch(`${API_URL}/projects/project/new`, {
+  const response = await fetch(`${API_URL}/projects`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -66,7 +66,7 @@ export async function createProject(projectData) {
 // Update project by ID
 export async function updateProject(projectId, projectData) {
   const token = localStorage.getItem('jwtToken');
-  const response = await fetch(`${API_URL}/projects/project/${projectId}`, {
+  const response = await fetch(`${API_URL}/projects/${projectId}`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
@@ -84,7 +84,7 @@ export async function updateProject(projectId, projectData) {
 // Delete project by ID
 export async function deleteProject(projectId) {
   const token = localStorage.getItem('jwtToken');
-  const response = await fetch(`${API_URL}/projects/project/${projectId}`, {
+  const response = await fetch(`${API_URL}/projects/${projectId}`, {
     method: 'DELETE',
     headers: {
       'Authorization': `Bearer ${token}`

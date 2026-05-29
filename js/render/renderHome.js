@@ -2,8 +2,21 @@ export function renderHome(user) {
 
   const container = document.getElementById("appContent");
 
-  const isAdmin = user.roles.includes("ADMIN");
-  const isManager = user.roles.includes("MANAGER");
+  const permissions = user.permissions || [];
+
+  const has = (perm) => permissions.includes(perm);
+
+  const canUsers =
+    has("users:read") || has("users:read:all");
+
+  const canRoles =
+    has("roles:read") || has("roles:read:all");
+
+  const canProjects =
+    permissions.some(p => p.startsWith("projects:"));
+
+  const canTasks =
+    permissions.some(p => p.startsWith("tasks:"));
 
   container.innerHTML = `
     <div class="container py-4">
@@ -11,52 +24,75 @@ export function renderHome(user) {
       <!-- HEADER -->
       <div class="mb-4 p-4 bg-white rounded shadow-sm">
         <h2>👋 Welcome, ${user.username}</h2>
+        <p class="text-muted mb-0">Dashboard based on JWT permissions</p>
       </div>
 
       <!-- ROLES -->
       <div class="card mb-4">
         <div class="card-body">
           <h5>🔐 Roles</h5>
-          ${user.roles.map(r => `<span class="badge text-primary-emphasis bg-primary-subtle border border-primary-subtle me-1">${r}</span>`).join("")}
+          ${user.roles.map(r => `
+            <span class="badge bg-primary me-1">
+              ${r.name || r}
+            </span>
+          `).join("")}
         </div>
       </div>
 
-      <!-- MODULES (ONLY IF ALLOWED) -->
+      <!-- MODULES -->
       <div class="row g-3">
 
-        ${isAdmin ? `
+        ${canUsers ? `
           <div class="col-md-6">
-            <div class="card p-3">
+            <div class="card p-3 shadow-sm">
               <h5>👤 Users Module</h5>
-              <p>You can manage all users</p>
-            </div>
-          </div>
-
-          <div class="col-md-6">
-            <div class="card p-3">
-              <h5>🔐 Roles Module</h5>
-              <p>You can manage system roles</p>
+              <p class="text-muted mb-0">
+                ${has("users:read:all")
+                  ? "Full access"
+                  : "Limited access"}
+              </p>
             </div>
           </div>
         ` : ""}
 
-        <div class="col-md-6">
-          <div class="card p-3">
-            <h5>📁 Projects</h5>
-            <p>
-              ${isAdmin ? "Full access" : isManager ? "Limited management access" : "Read-only access"}
-            </p>
+        ${canRoles ? `
+          <div class="col-md-6">
+            <div class="card p-3 shadow-sm">
+              <h5>🔐 Roles Module</h5>
+              <p class="text-muted mb-0">
+                ${has("roles:read:all")
+                  ? "Full access"
+                  : "Read-only access"}
+              </p>
+            </div>
           </div>
-        </div>
+        ` : ""}
 
-        <div class="col-md-6">
-          <div class="card p-3">
-            <h5>📝 Tasks</h5>
-            <p>
-              ${isAdmin ? "Full access" : isManager ? "Limited management access" : "Read-only access"}
-            </p>
+        ${canProjects ? `
+          <div class="col-md-6">
+            <div class="card p-3 shadow-sm">
+              <h5>📁 Projects</h5>
+              <p class="text-muted mb-0">
+                ${has("projects:delete")
+                  ? "Full control"
+                  : "Limited access"}
+              </p>
+            </div>
           </div>
-        </div>
+        ` : ""}
+
+        ${canTasks ? `
+          <div class="col-md-6">
+            <div class="card p-3 shadow-sm">
+              <h5>📝 Tasks</h5>
+              <p class="text-muted mb-0">
+                ${has("tasks:delete")
+                  ? "Full control"
+                  : "Limited access"}
+              </p>
+            </div>
+          </div>
+        ` : ""}
 
       </div>
 

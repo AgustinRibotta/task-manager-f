@@ -9,7 +9,6 @@ export async function renderTasks(user) {
     ? await getAllTasks()
     : await getTasksByUserId(user.id);
 
-  // 👇 helper: si el usuario está asignado a la task
   const isAssignedToUser = (task, user) =>
     task.users?.some(u => u.id === user.id);
 
@@ -30,59 +29,92 @@ export async function renderTasks(user) {
   }, {});
 
   content.innerHTML = `
-    <div class="p-4">
+    <div class="container py-4">
 
       <!-- HEADER -->
-      <div class="d-flex justify-content-between align-items-center mb-3">
-        <h2 class="mb-0">📝 Task</h2>
+      <div class="d-flex justify-content-between align-items-center mb-4">
+
+        <div>
+          <h2 class="mb-0">📝 Tasks</h2>
+          <small class="text-muted">Manage and track your work</small>
+        </div>
 
         ${isAdmin ? `
-          <button class="btn btn-outline-primary" id="createTaskBtn">
+          <button class="btn btn-primary shadow-sm" id="createTaskBtn">
             + Create Task
           </button>
         ` : ""}
+
       </div>
 
       <!-- GRID -->
-      <div class="d-flex flex-wrap gap-3">
+      <div class="row g-3">
 
         ${Object.values(grouped).map(group => `
 
-          <div class="border rounded p-3 shadow-sm"
-               style="width: 320px; background: #fff;">
+          <div class="col-md-4">
 
-            <!-- TITLE -->
-            <h5 class="mb-3">
-              📁 ${group.project?.name ?? "My Tasks"}
-            </h5>
+            <div class="card border-0 shadow-sm h-100">
 
-            <!-- TASK LIST -->
-            ${group.tasks.map(task => `
+              <!-- HEADER -->
+              <div class="card-header bg-white border-0">
+                <h5 class="mb-0">
+                  📁 ${group.project?.name ?? "My Tasks"}
+                </h5>
+                <small class="text-muted">
+                  ${group.tasks.length} tasks
+                </small>
+              </div>
 
-              <div class="border rounded p-2 mb-2 project-card position-relative"
-                   style="cursor:pointer"
-                   data-id="${task.id}">
+              <!-- BODY -->
+              <div class="card-body">
 
-                <!-- ⭐ SOLO ADMIN + ASIGNADO -->
-                ${isAdmin && isAssignedToUser(task, user) ? `
-                  <span class="badge bg-warning text-dark position-absolute top-0 end-0 m-1">
-                    Assigned
-                  </span>
-                ` : ""}
+                ${group.tasks.map(task => `
 
-                <strong>${task.name}</strong>
+                  <div class="border rounded p-2 mb-2 task-card position-relative"
+                       style="cursor:pointer"
+                       data-id="${task.id}">
 
-                <p class="mb-1 small text-muted">
-                  ${task.description || ""}
-                </p>
+                    <!-- BADGE -->
+                    ${isAdmin && isAssignedToUser(task, user) ? `
+                      <span class="badge bg-warning text-dark position-absolute top-0 end-0 m-1">
+                        Assigned
+                      </span>
+                    ` : ""}
 
-                <span class="badge text-success-emphasis bg-success-subtle border border-success-subtle">
-                  Users: ${task.users?.length ?? 0}
-                </span>
+                    <strong class="d-block">
+                      ${task.name}
+                    </strong>
+
+                    <small class="text-muted d-block mb-2">
+                      ${task.description || "No description"}
+                    </small>
+
+                    <div class="d-flex justify-content-between">
+
+                      <span class="badge bg-success-subtle text-success border">
+                        👥 ${task.users?.length ?? 0}
+                      </span>
+
+                      <span class="badge ${
+                        task.status === "DONE"
+                          ? "bg-success"
+                          : task.status === "IN_PROGRESS"
+                          ? "bg-warning text-dark"
+                          : "bg-secondary"
+                      }">
+                        ${task.status}
+                      </span>
+
+                    </div>
+
+                  </div>
+
+                `).join("")}
 
               </div>
 
-            `).join("")}
+            </div>
 
           </div>
 
@@ -92,19 +124,19 @@ export async function renderTasks(user) {
     </div>
   `;
 
-  // CLICK HANDLER
-  document.querySelectorAll(".project-card").forEach(card => {
+  // CLICK TASK
+  document.querySelectorAll(".task-card").forEach(card => {
     card.addEventListener("click", () => {
-      const id = card.getAttribute("data-id");
-      renderTaskDetail(id);
+      const id = card.dataset.id;
+      console.log("Open task:", id);
+      // renderTaskDetail(id);
     });
   });
 
   // CREATE TASK
-  const createBtn = document.getElementById("createTaskBtn");
-  if (createBtn) {
-    createBtn.addEventListener("click", () => {
-      renderCreateTask();
+  document.getElementById("createTaskBtn")
+    ?.addEventListener("click", () => {
+      console.log("Create task");
+      // renderCreateTask();
     });
-  }
 }

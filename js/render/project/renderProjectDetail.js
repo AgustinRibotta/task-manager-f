@@ -8,9 +8,18 @@ export async function renderProjectDetail(id) {
   const content = document.getElementById("appContent");
 
   const token = localStorage.getItem("jwtToken");
-  const user = decodeJWT(token);
+  const user = decodeJWT(token) || {};
 
-  const isAdmin = user.roles.includes("ADMIN");
+  // 🔐 PERMISSIONS SAFE
+  const permissions = user.permissions || [];
+  const has = (perm) => permissions.includes(perm);
+
+  const can = {
+    createTask: has("tasks:create"),
+    assignUser: has("users:update") || has("users:create"),
+    editProject: has("projects:update"),
+    deleteProject: has("projects:delete"),
+  };
 
   const project = await getProjectById(id);
 
@@ -21,160 +30,197 @@ export async function renderProjectDetail(id) {
       <div class="card p-3 mb-3 shadow-sm">
 
         <div class="d-flex justify-content-between align-items-start">
-
           <div>
-            <h2>${project.name}</h2>
-            <p class="text-muted">${project.description}</p>
+
+            <h2 class="mb-1 fw-semibold">
+              ${project.name}
+            </h2>
+
+            ${project.owner ? `
+              <div class="d-flex align-items-center gap-2 mb-2">
+
+                <span class="badge bg-dark-subtle text-dark border">
+                  👤 Project Manager
+                </span>
+
+                <div class="d-flex flex-column">
+
+                  <span class="fw-medium small">
+                    ${project.owner.username || "Unknown"}
+                  </span>
+
+                  <small class="text-muted">
+                    ${project.owner.email || ""}
+                  </small>
+
+                </div>
+
+              </div>
+            ` : ""}
+
+            <p class="text-muted mb-0">
+              ${project.description || "No description provided"}
+            </p>
+
           </div>
 
           <!-- ACTIONS -->
           <div class="d-flex flex-wrap gap-2 justify-content-end align-items-center">
 
-            ${isAdmin ? `
-              
-              <button class="btn btn-outline-primary btn-sm d-flex align-items-center gap-1"
-                      id="assignTaskBtn">
-                <span>➕</span> Assign Task
+            ${can.createTask ? `
+              <button class="btn btn-outline-primary btn-sm" id="assignTaskBtn">
+                ➕ Task
               </button>
+            ` : ""}
 
-              <button class="btn btn-outline-success btn-sm d-flex align-items-center gap-1"
-                      id="assignUserBtn">
-                <span>👤</span> Assign User
+            ${can.assignUser ? `
+              <button class="btn btn-outline-success btn-sm" id="assignUserBtn">
+                👤 User
               </button>
+            ` : ""}
 
+            ${(can.editProject || can.deleteProject) ? `
               <div class="vr"></div>
-
-              <button class="btn btn-outline-warning btn-sm d-flex align-items-center gap-1"
-                      id="editProject">
-                <span>✏️</span> Edit
+            ` : ""}
+            ${can.assignUser ? `
+              <button class="btn btn-outline-secondary btn-sm" id="changeOwnerBtn">
+                👤 Project Manager
               </button>
-
-              <button class="btn btn-outline-danger btn-sm d-flex align-items-center gap-1"
-                      id="deleteProject">
-                <span>🗑️</span> Delete
+            ` : ""}
+            ${can.editProject ? `
+              <button class="btn btn-outline-warning btn-sm" id="editProject">
+                ✏️ Edit
               </button>
-
+            ` : ""}
+            ${can.deleteProject ? `
+              <button class="btn btn-outline-danger btn-sm" id="deleteProject">
+                🗑️ Delete
+              </button>
             ` : ""}
 
           </div>
 
         </div>
+
       </div>
 
       <div class="row">
 
         <!-- TASKS -->
         <div class="col-md-8">
-          <div class="card p-3 shadow-sm">
 
-            <div class="d-flex justify-content-between align-items-center mb-3">
-              <h5 class="mb-0">📝 Tasks (${project.tasks.length})</h5>
-            </div>
+          <div class="card border-0 shadow-sm p-3">
 
-            ${project.tasks.map(task => `
-              <div class="border rounded p-2 mb-2 task-card"
-                   style="cursor:pointer"
-                   data-id="${task.id}">
+            <h5 class="mb-3">📝 Tasks (${project.tasks?.length || 0})</h5>
 
-                <strong>${task.name}</strong>
+            ${(project.tasks || []).map(task => `
+              <div class="border rounded p-3 mb-2 task-card position-relative"
+                  style="cursor:pointer"
+                  data-id="${task.id}">
 
-                <p class="mb-1">${task.description}</p>
-
-                <span class="badge 
-                  ${task.status === "DONE"
+                <!-- STATUS TOP RIGHT -->
+                <span class="badge position-absolute top-0 end-0 m-2 ${
+                  task.status === "DONE"
                     ? "bg-success"
                     : task.status === "IN_PROGRESS"
-                    ? "bg-warning"
-                    : "bg-secondary"}">
-
+                    ? "bg-warning text-dark"
+                    : "bg-secondary"
+                }">
                   ${task.status}
-
                 </span>
+
+                <!-- CONTENT -->
+                <strong class="d-block mb-1">
+                  ${task.name}
+                </strong>
+
+                <p class="mb-0 text-muted small">
+                  ${task.description || ""}
+                </p>
 
               </div>
             `).join("")}
 
           </div>
+
         </div>
 
         <!-- USERS -->
         <div class="col-md-4">
-          <div class="card p-3 shadow-sm">
 
-            <div class="d-flex justify-content-between align-items-center mb-3">
-              <h5 class="mb-0">👥 Users (${project.users.length})</h5>
-            </div>
+          <div class="card border-0 shadow-sm p-3">
 
-            ${project.users.map(users => `
-              <div class="border rounded p-2 mb-2 user-card"
-                   style="cursor:pointer"
-                   data-id="${users.id}">
+            <h5 class="mb-3">👥 Users (${project.users?.length || 0})</h5>
 
-                <strong>${users.username}</strong>
+            ${(project.users || []).map(u => `
+              <div class="border rounded p-3 mb-2 user-card"
+                  style="cursor:pointer"
+                  data-id="${u.id}">
 
-                <p class="mb-0 text-muted">
-                  ${users.roles.map(role => role.name).join(", ")}
-                </p>
+                <!-- NAME + ROLE -->
+                <div class="d-flex justify-content-between align-items-start mb-1">
 
-                <p class="mb-0 text-muted">
-                  ${users.email}
-                </p>
+                  <strong>
+                    ${u.username}
+                  </strong>
+
+                  <span class="badge bg-primary-subtle text-primary border">
+                    ${(u.roles || []).map(r => r.name).join(", ")}
+                  </span>
+
+                </div>
+
+                <!-- EMAIL -->
+                <small class="text-muted d-block">
+                  ${u.email}
+                </small>
 
               </div>
             `).join("")}
 
           </div>
+
         </div>
 
       </div>
-    </div>
   `;
 
   // TASK DETAIL
   document.querySelectorAll(".task-card").forEach(task => {
     task.addEventListener("click", () => {
-      const taskId = task.dataset.id;
-      console.log("Open task:", taskId);
-
-      // renderTaskDetail(taskId)
+      console.log("Open task:", task.dataset.id);
+      // renderTaskDetail(task.dataset.id);
     });
   });
 
   // USER DETAIL
   document.querySelectorAll(".user-card").forEach(userCard => {
     userCard.addEventListener("click", () => {
-      const userId = userCard.dataset.id;
-      console.log("Open user:", userId);
-
-      // renderUserProfile(userId)
+      console.log("Open user:", userCard.dataset.id);
+      // renderUserProfile(userCard.dataset.id);
     });
   });
 
   // EDIT PROJECT
-  if (isAdmin) {
+  document.getElementById("editProject")
+    ?.addEventListener("click", () => renderEditProject(id));
 
-    document.getElementById("editProject")
-      .addEventListener("click", () => {
-        renderEditProject(id);
-      });
+  // DELETE PROJECT
+  document.getElementById("deleteProject")
+    ?.addEventListener("click", () => renderDeleteProject(id));
 
-    document.getElementById("deleteProject")
-      .addEventListener("click", () => {
-        renderDeleteProject(id);
-      });
+  // ASSIGN TASK
+  document.getElementById("assignTaskBtn")
+    ?.addEventListener("click", () => renderAssignTask(id));
 
-    // ASSIGN TASK
-    document.getElementById("assignTaskBtn")
-      .addEventListener("click", () => {
-        renderAssignTask(id);
-      });
+  // ASSIGN USER
+  document.getElementById("assignUserBtn")
+    ?.addEventListener("click", () => renderAssignUser(id));
 
-    // ASSIGN USER
-    document.getElementById("assignUserBtn")
-      .addEventListener("click", () => {
-        renderAssignUser(id);
-      });
-
-  }
-
+  // 👤 CHANGE OWNER (FUTURO / SEPARADO)
+  document.getElementById("changeOwnerBtn")
+    ?.addEventListener("click", () => {
+      // renderAssignOwner(id);
+      console.log("Change owner:", id);
+    });
 }

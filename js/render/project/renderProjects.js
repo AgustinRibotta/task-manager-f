@@ -16,57 +16,88 @@ export async function renderProjects(user) {
     ? await getAllProjects()
     : await getProjectByUserId(user.id);
 
-  // 👇 usuario con rol ADMIN dentro del proyecto
+  const isOwner = (project, user) =>
+    project.owner?.id === user.id;
+
   const isAdminInProject = (project, user) =>
     project.users?.some(u =>
       u.id === user.id && u.roles?.some(r => r.name === "ADMIN")
     );
 
   content.innerHTML = `
-    <div class="p-4">
+    <div class="container py-4">
 
       <!-- HEADER -->
-      <div class="d-flex justify-content-between align-items-center mb-3">
-        <h2 class="mb-0">📁 Projects</h2>
+      <div class="d-flex justify-content-between align-items-center mb-4">
+
+        <div>
+          <h2 class="mb-0">📁 Projects</h2>
+          <small class="text-muted">Manage your workspace projects</small>
+        </div>
 
         ${isGlobalAdmin ? `
-          <button class="btn btn-outline-primary" id="createProjectBtn">
+          <button class="btn btn-primary shadow-sm" id="createProjectBtn">
             + Create Project
           </button>
         ` : ""}
+
       </div>
 
       <!-- GRID -->
-      <div class="d-flex flex-wrap gap-3">
+      <div class="row g-3">
 
         ${projects.map(project => `
 
-          <div class="border rounded p-3 shadow-sm position-relative project-card"
-               style="width: 320px; cursor: pointer;"
-               data-id="${project.id}">
+          <div class="col-md-4">
 
-            <!-- 👑 ADMIN EN PROYECTO -->
-            ${isAdminInProject(project, user) ? `
-              <span class="badge bg-warning text-dark position-absolute top-0 end-0 m-2">
-                Assigned
-              </span>
-            ` : ""}
+            <div class="card border-0 shadow-sm project-card h-100 position-relative"
+                 style="cursor:pointer;"
+                 data-id="${project.id}">
 
-            <h5 class="mb-2">${project.name}</h5>
+              <!-- BADGES -->
+              <div class="position-absolute top-0 end-0 m-2 d-flex gap-1">
 
-            <p class="text-muted small">
-              ${project.description || ""}
-            </p>
+                ${isOwner(project, user) ? `
+                  <span class="badge bg-dark">
+                    Owner
+                  </span>
+                ` : ""}
 
-            <div class="d-flex gap-2 flex-wrap">
+                ${isAdminInProject(project, user) ? `
+                  <span class="badge bg-warning text-dark">
+                    Member
+                  </span>
+                ` : ""}
 
-              <span class="badge text-primary-emphasis bg-primary-subtle border border-primary-subtle">
-                Tasks: ${project.tasks?.length ?? 0}
-              </span>
+              </div>
 
-              <span class="badge text-success-emphasis bg-success-subtle border border-success-subtle">
-                Users: ${project.users?.length ?? 0}
-              </span>
+              <div class="card-body">
+
+                <h5 class="card-title mb-2">
+                  ${project.name}
+                </h5>
+
+                <p class="card-text text-muted small mb-3">
+                  ${project.description || "No description"}
+                </p>
+
+                <div class="d-flex justify-content-between">
+
+                  <span class="badge bg-primary-subtle text-primary border">
+                    📝 ${project.tasks?.length ?? 0} Tasks
+                  </span>
+
+                  <span class="badge bg-success-subtle text-success border">
+                    👥 ${project.users?.length ?? 0} Users
+                  </span>
+
+                </div>
+
+              </div>
+
+              <div class="card-footer bg-white border-0 text-muted small">
+                Click to open
+              </div>
 
             </div>
 
@@ -81,16 +112,11 @@ export async function renderProjects(user) {
   // CLICK
   document.querySelectorAll(".project-card").forEach(card => {
     card.addEventListener("click", () => {
-      const id = card.getAttribute("data-id");
-      renderProjectDetail(id);
+      renderProjectDetail(card.dataset.id);
     });
   });
 
   // CREATE
-  const createBtn = document.getElementById("createProjectBtn");
-  if (createBtn) {
-    createBtn.addEventListener("click", () => {
-      renderCreateProject();
-    });
-  }
+  document.getElementById("createProjectBtn")
+    ?.addEventListener("click", renderCreateProject);
 }

@@ -26,7 +26,8 @@ export function decodeJWT(token) {
   return {
     username: payload.sub || null,
     id: payload.userId || null,
-    roles: payload.roles || []
+    roles: payload.roles || [],
+    permissions: payload.permissions || []
   };
 }
 

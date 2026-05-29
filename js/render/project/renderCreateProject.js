@@ -1,67 +1,93 @@
 import { createProject } from "../../api/projectApi.js";
 import { renderProjects } from "./renderProjects.js";
 import { decodeJWT } from "../../api/configApi.js";
+import { getAllUsers } from "../../api/userApi.js";
 
-export function renderCreateProject() {
+export async function renderCreateProject() {
+
+  const users = await getAllUsers();
 
   const modalHTML = `
-    <div class="modal fade" id="createProjectModal" tabindex="-1">
+  <div class="modal fade" id="createProjectModal" tabindex="-1">
 
-      <div class="modal-dialog modal-lg">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
 
-        <div class="modal-content">
+      <div class="modal-content shadow-lg border-0 rounded-4">
 
-          <div class="modal-header">
-            <h5 class="modal-title">Create Project</h5>
-            <button class="btn-close" data-bs-dismiss="modal"></button>
-          </div>
+        <!-- HEADER -->
+        <div class="modal-header border-0">
+          <h5 class="modal-title fw-bold">Create Project</h5>
+          <button class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
 
-          <div class="modal-body">
+        <!-- BODY -->
+        <div class="modal-body px-4 pb-4">
 
+          <!-- NAME -->
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Project name</label>
             <input
               id="createName"
-              class="form-control mb-3"
-              placeholder="Project Name"/><textarea
+              class="form-control form-control-lg"
+              placeholder="e.g. Task Manager API"/>
+          </div>
+
+          <!-- DESCRIPTION -->
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Description</label>
+            <textarea
               id="createDescription"
               class="form-control"
-              rows="6"
-              placeholder="Project Description"></textarea>
+              rows="5"
+              placeholder="Project description..."></textarea>
+          </div>
+
+          <!-- OWNER -->
+          <div class="mb-2">
+            <label class="form-label fw-semibold">Owner</label>
+
+            <select id="createOwner" class="form-select form-select-lg">
+
+              <option value="">Select owner...</option>
+
+              ${users.map(u => `
+                <option value="${u.id}">
+                  ${u.username} (${u.email}) - ${u.roles?.map(r => r.name).join(", ")}
+                </option>
+              `).join("")}
+
+            </select>
 
           </div>
 
-          <div class="modal-footer">
+        </div>
 
-            <button
-              class="btn btn-outline-danger"
-              data-bs-dismiss="modal">
-              Cancel
-            </button>
+        <!-- FOOTER -->
+        <div class="modal-footer border-0 px-4 pb-4">
 
-            <button
-              class="btn btn-outline-primary"
-              id="saveProject">
-              Create
-            </button>
+          <button class="btn btn-outline-secondary" data-bs-dismiss="modal">
+            Cancel
+          </button>
 
-          </div>
+          <button class="btn btn-primary px-4" id="saveProject">
+            Create project
+          </button>
 
         </div>
 
       </div>
 
     </div>
+
+  </div>
   `;
 
-  // insertar modal
   document.body.insertAdjacentHTML("beforeend", modalHTML);
 
   const modalElement = document.getElementById("createProjectModal");
-
   const modal = new bootstrap.Modal(modalElement);
-
   modal.show();
 
-  // CREATE
   document.getElementById("saveProject")
     .addEventListener("click", async () => {
 
@@ -69,7 +95,10 @@ export function renderCreateProject() {
 
         const projectData = {
           name: document.getElementById("createName").value,
-          description: document.getElementById("createDescription").value
+          description: document.getElementById("createDescription").value,
+
+          // 👇 ID del usuario seleccionado
+          owner: Number(document.getElementById("createOwner").value)
         };
 
         await createProject(projectData);
@@ -87,7 +116,6 @@ export function renderCreateProject() {
 
     });
 
-  // limpiar DOM
   modalElement.addEventListener("hidden.bs.modal", () => {
     modalElement.remove();
   });

@@ -3,7 +3,7 @@ import { API_URL } from './configApi.js';
 // Get all tasks
 export async function getAllTasks() {
   const token = localStorage.getItem('jwtToken');
-  const response = await fetch(`${API_URL}/tasks/all`, {
+  const response = await fetch(`${API_URL}/tasks`, {
     headers: {
       'Authorization': `Bearer ${token}`
     }
@@ -18,7 +18,7 @@ export async function getAllTasks() {
 // Get task by ID
 export async function getTaskById(taskId) {
   const token = localStorage.getItem('jwtToken');
-  const response = await fetch(`${API_URL}/tasks/task/${taskId}`, {
+  const response = await fetch(`${API_URL}/tasks/${taskId}`, {
     headers: {
       'Authorization': `Bearer ${token}`
     }
@@ -33,7 +33,7 @@ export async function getTaskById(taskId) {
 // Get tasks by user ID
 export async function getTasksByUserId(userId) {
   const token = localStorage.getItem('jwtToken');
-  const response = await fetch(`${API_URL}/tasks/userId/${userId}`, {
+  const response = await fetch(`${API_URL}/tasks/users/${userId}/tasks`, {
     headers: {
       'Authorization': `Bearer ${token}`
     }
@@ -48,7 +48,7 @@ export async function getTasksByUserId(userId) {
 // Create new task
 export async function createTask(taskData) {
   const token = localStorage.getItem('jwtToken');
-  const response = await fetch(`${API_URL}/tasks/task/new`, {
+  const response = await fetch(`${API_URL}/tasks`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -66,7 +66,7 @@ export async function createTask(taskData) {
 // Update task by ID
 export async function updateTask(taskId, taskData) {
   const token = localStorage.getItem('jwtToken');
-  const response = await fetch(`${API_URL}/tasks/task/${taskId}`, {
+  const response = await fetch(`${API_URL}/tasks/${taskId}`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
@@ -84,7 +84,7 @@ export async function updateTask(taskId, taskData) {
 // Delete task by ID
 export async function deleteTask(taskId) {
   const token = localStorage.getItem('jwtToken');
-  const response = await fetch(`${API_URL}/tasks/task/${taskId}`, {
+  const response = await fetch(`${API_URL}/tasks/${taskId}`, {
     method: 'DELETE',
     headers: {
       'Authorization': `Bearer ${token}`
