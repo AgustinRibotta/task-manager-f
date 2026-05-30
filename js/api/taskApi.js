@@ -63,6 +63,24 @@ export async function createTask(taskData) {
     return await response.json();
 }
 
+// Create new task for project
+export async function createTaskProject(taskData, projectId) {
+  const token = localStorage.getItem('jwtToken');
+  const response = await fetch(`${API_URL}/tasks/project/${projectId}/tasks`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    },
+    body: JSON.stringify(taskData)
+  });
+  
+  if (!response.ok) {
+    throw new Error('Failed to create task');
+  }
+    return await response.json();
+}
+
 // Update task by ID
 export async function updateTask(taskId, taskData) {
   const token = localStorage.getItem('jwtToken');

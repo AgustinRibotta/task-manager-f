@@ -5,6 +5,14 @@ export async function renderTasks(user) {
 
   const isAdmin = user.roles.includes("ADMIN");
 
+  const permissions = user.permissions || [];
+  const has = (perm) => permissions.includes(perm);
+
+  const can = {
+    viewAllTasks: has("tasks:read:all"),
+    createTask: has("tasks:create"),
+  };
+
   const tasks = isAdmin
     ? await getAllTasks()
     : await getTasksByUserId(user.id);
@@ -39,7 +47,7 @@ export async function renderTasks(user) {
           <small class="text-muted">Manage and track your work</small>
         </div>
 
-        ${isAdmin ? `
+        ${can.createTask ? `
           <button class="btn btn-primary shadow-sm" id="createTaskBtn">
             + Create Task
           </button>
@@ -107,7 +115,9 @@ export async function renderTasks(user) {
                       </span>
 
                     </div>
-
+                    <div class="card-footer bg-white border-0 text-muted small">
+                      Click to open
+                    </div>  
                   </div>
 
                 `).join("")}
@@ -119,7 +129,7 @@ export async function renderTasks(user) {
           </div>
 
         `).join("")}
-
+           
       </div>
     </div>
   `;

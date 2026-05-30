@@ -81,6 +81,23 @@ export async function updateProject(projectId, projectData) {
     return await response.json();
 }
 
+// Update project Owner by ID
+export async function updateProjectOwner(projectId, ownerId) {
+  const token = localStorage.getItem('jwtToken');
+  const response = await fetch(`${API_URL}/projects/${projectId}/owner/${ownerId}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    },
+  });
+  
+  if (!response.ok) {
+    throw new Error('Failed to update project Owner');
+  }
+    return await response.json();
+}
+
 // Delete project by ID
 export async function deleteProject(projectId) {
   const token = localStorage.getItem('jwtToken');

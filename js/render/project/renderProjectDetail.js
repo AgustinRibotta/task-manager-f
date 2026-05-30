@@ -1,6 +1,7 @@
 import { getProjectById } from "../../api/projectApi.js";
 import { renderEditProject } from "./renderEditProject.js";
 import { renderDeleteProject } from "./renderDeleteProject.js";
+import { renderAssignOwner } from "./renderAssignOwner.js";
 import { decodeJWT } from "../../api/configApi.js";
 
 export async function renderProjectDetail(id) {
@@ -10,7 +11,6 @@ export async function renderProjectDetail(id) {
   const token = localStorage.getItem("jwtToken");
   const user = decodeJWT(token) || {};
 
-  // 🔐 PERMISSIONS SAFE
   const permissions = user.permissions || [];
   const has = (perm) => permissions.includes(perm);
 
@@ -21,7 +21,44 @@ export async function renderProjectDetail(id) {
     deleteProject: has("projects:delete"),
   };
 
+  // 🔥 FIRST: LOAD PROJECT
   const project = await getProjectById(id);
+
+  // 🔥 ROLE ORDER
+  const roleOrder = {
+    ADMIN: 1,
+    MANAGER: 2,
+    DEVELOPER: 3,
+    USER: 4
+  };
+
+  const sortedUsers = [...(project.users || [])].sort((a, b) => {
+    const priorityA = Math.min(
+      ...((a.roles || []).map(r => roleOrder[r.name] || 999))
+    );
+
+    const priorityB = Math.min(
+      ...((b.roles || []).map(r => roleOrder[r.name] || 999))
+    );
+
+    return priorityA - priorityB;
+  });
+
+  // 🔥 TASK ORDER
+  const taskOrder = {
+    TODO: 1,
+    IN_PROGRESS: 2,
+    REVIEW: 3,
+    TESTING: 4,
+    DONE: 5
+  };
+
+  const sortedTasks = [...(project.tasks || [])].sort((a, b) => {
+    return (
+      (taskOrder[a.status] || 999) -
+      (taskOrder[b.status] || 999)
+    );
+  });
 
   content.innerHTML = `
     <div class="container py-4">
@@ -30,6 +67,7 @@ export async function renderProjectDetail(id) {
       <div class="card p-3 mb-3 shadow-sm">
 
         <div class="d-flex justify-content-between align-items-start">
+
           <div>
 
             <h2 class="mb-1 fw-semibold">
@@ -82,16 +120,19 @@ export async function renderProjectDetail(id) {
             ${(can.editProject || can.deleteProject) ? `
               <div class="vr"></div>
             ` : ""}
+
             ${can.assignUser ? `
               <button class="btn btn-outline-secondary btn-sm" id="changeOwnerBtn">
                 👤 Project Manager
               </button>
             ` : ""}
+
             ${can.editProject ? `
               <button class="btn btn-outline-warning btn-sm" id="editProject">
                 ✏️ Edit
               </button>
             ` : ""}
+
             ${can.deleteProject ? `
               <button class="btn btn-outline-danger btn-sm" id="deleteProject">
                 🗑️ Delete
@@ -111,14 +152,17 @@ export async function renderProjectDetail(id) {
 
           <div class="card border-0 shadow-sm p-3">
 
-            <h5 class="mb-3">📝 Tasks (${project.tasks?.length || 0})</h5>
+            <h5 class="mb-3">
+              📝 Tasks (${project.tasks?.length || 0})
+            </h5>
 
-            ${(project.tasks || []).map(task => `
-              <div class="border rounded p-3 mb-2 task-card position-relative"
-                  style="cursor:pointer"
-                  data-id="${task.id}">
+            ${sortedTasks.map(task => `
+              <div
+                class="border rounded p-3 mb-2 task-card position-relative"
+                style="cursor:pointer"
+                data-id="${task.id}"
+              >
 
-                <!-- STATUS TOP RIGHT -->
                 <span class="badge position-absolute top-0 end-0 m-2 ${
                   task.status === "DONE"
                     ? "bg-success"
@@ -129,7 +173,6 @@ export async function renderProjectDetail(id) {
                   ${task.status}
                 </span>
 
-                <!-- CONTENT -->
                 <strong class="d-block mb-1">
                   ${task.name}
                 </strong>
@@ -150,19 +193,20 @@ export async function renderProjectDetail(id) {
 
           <div class="card border-0 shadow-sm p-3">
 
-            <h5 class="mb-3">👥 Users (${project.users?.length || 0})</h5>
+            <h5 class="mb-3">
+              👥 Users (${project.users?.length || 0})
+            </h5>
 
-            ${(project.users || []).map(u => `
-              <div class="border rounded p-3 mb-2 user-card"
-                  style="cursor:pointer"
-                  data-id="${u.id}">
+            ${sortedUsers.map(u => `
+              <div
+                class="border rounded p-3 mb-2 user-card"
+                style="cursor:pointer"
+                data-id="${u.id}"
+              >
 
-                <!-- NAME + ROLE -->
                 <div class="d-flex justify-content-between align-items-start mb-1">
 
-                  <strong>
-                    ${u.username}
-                  </strong>
+                  <strong>${u.username}</strong>
 
                   <span class="badge bg-primary-subtle text-primary border">
                     ${(u.roles || []).map(r => r.name).join(", ")}
@@ -170,7 +214,6 @@ export async function renderProjectDetail(id) {
 
                 </div>
 
-                <!-- EMAIL -->
                 <small class="text-muted d-block">
                   ${u.email}
                 </small>
@@ -183,13 +226,14 @@ export async function renderProjectDetail(id) {
         </div>
 
       </div>
+
+    </div>
   `;
 
   // TASK DETAIL
   document.querySelectorAll(".task-card").forEach(task => {
     task.addEventListener("click", () => {
       console.log("Open task:", task.dataset.id);
-      // renderTaskDetail(task.dataset.id);
     });
   });
 
@@ -197,7 +241,6 @@ export async function renderProjectDetail(id) {
   document.querySelectorAll(".user-card").forEach(userCard => {
     userCard.addEventListener("click", () => {
       console.log("Open user:", userCard.dataset.id);
-      // renderUserProfile(userCard.dataset.id);
     });
   });
 
@@ -217,10 +260,9 @@ export async function renderProjectDetail(id) {
   document.getElementById("assignUserBtn")
     ?.addEventListener("click", () => renderAssignUser(id));
 
-  // 👤 CHANGE OWNER (FUTURO / SEPARADO)
+  // CHANGE OWNER
   document.getElementById("changeOwnerBtn")
     ?.addEventListener("click", () => {
-      // renderAssignOwner(id);
-      console.log("Change owner:", id);
+      renderAssignOwner(id, project.owner?.id);
     });
 }
